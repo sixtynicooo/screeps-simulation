@@ -16,12 +16,16 @@ declare global {
     log: any;
   }
 
+  interface RoomMemory{
+    spawnId:Id<StructureSpawn>
+  }
+
   interface CreepMemory {
     role: string;
     room: string;
     working: boolean;
+    livello:number
   }
-
 }
 // Syntax for adding properties to `global` (ex "global.log")
 declare const global: {
