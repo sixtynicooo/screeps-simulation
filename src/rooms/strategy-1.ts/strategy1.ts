@@ -19,7 +19,7 @@ export function strategia1(room: Room, roomName: string, roomCreeps: RoomCreepCo
 
       for(let creep of creepsInRoom){
         if(creep.memory.role==='harvester'){
-          activityHarvester(creep)
+          activityHarvester(creep,spawn)
         }else if(creep.memory.role==='upgrader'){
           activityUpgrader(creep)
           }
