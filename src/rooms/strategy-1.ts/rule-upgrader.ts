@@ -1,5 +1,4 @@
-// soluzione che aggiorna creeps la proprietà weoking o no.
-export function activityHarvester(creep:Creep) {
+export function activityUpgrader(creep:Creep) {
     const sources = creep.room.find(FIND_SOURCES);
     if( !creep.memory.working){
         if(creep.harvest(sources[0]) === ERR_NOT_IN_RANGE){
@@ -13,12 +12,12 @@ export function activityHarvester(creep:Creep) {
         if(creep.store.getFreeCapacity()>0 && creep.harvest(sources[0]) === OK){
             // recupero finchè sono pieno
             creep.moveTo(sources[0],{ visualizePathStyle: { stroke: '#8c2f54' } });
-        }else if(creep.store[RESOURCE_ENERGY]>0){
-            // provo a trasferire energia
-            const result = creep.transfer(Game.spawns.Spawn1, RESOURCE_ENERGY)
+        }else if(creep.store[RESOURCE_ENERGY]>0 && creep.room.controller){
+            // provo a fare upgrade
+            const result = creep.upgradeController(creep.room.controller);
 
             if(result===ERR_NOT_IN_RANGE){
-                creep.moveTo(Game.spawns.Spawn1,{ visualizePathStyle: { stroke: '#5f44af' } });
+                creep.moveTo(creep.room.controller,{ visualizePathStyle: { stroke: '#5f44af' } });
             }
         }else{
             creep.memory.working=false
