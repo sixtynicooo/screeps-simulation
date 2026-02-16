@@ -1,6 +1,7 @@
 import { RoomCreepCounts, RoomStrategyConfig } from "main";
 import { activityHarvester } from "./rule-harvester";
 import { activityUpgrader } from "./rule-upgrader";
+import { activityBuilder } from "./rule-builder";
 
 export function strategia1(room: Room, roomName: string, roomCreeps: RoomCreepCounts, roomCreepConfig: RoomStrategyConfig,levelRoom:number): void {
    const spawns=room.find(FIND_MY_SPAWNS)
@@ -15,6 +16,7 @@ export function strategia1(room: Room, roomName: string, roomCreeps: RoomCreepCo
     // prima di tutto voglio essere certo che esista almeeno 1 Harvester
     if(!controlExistHarvester(spawn,creepsInRoom,roomName,roomCreeps,roomCreepConfig,levelRoom)) {
       controlExistUpgrader(spawn,creepsInRoom,roomName,roomCreeps,roomCreepConfig,levelRoom)
+      controlExistBuilder(spawn,creepsInRoom,roomName,roomCreeps,roomCreepConfig,levelRoom)
     }
 
       for(let creep of creepsInRoom){
@@ -22,7 +24,9 @@ export function strategia1(room: Room, roomName: string, roomCreeps: RoomCreepCo
           activityHarvester(creep,spawn)
         }else if(creep.memory.role==='upgrader'){
           activityUpgrader(creep)
-          }
+        }else if(creep.memory.role==='builder'){
+          activityBuilder(creep)
+        }
       }
 
 }
@@ -30,7 +34,7 @@ export function strategia1(room: Room, roomName: string, roomCreeps: RoomCreepCo
 function controlExistHarvester(spawn: StructureSpawn, creepsInRoom: Creep[], roomName: string, roomCreeps: RoomCreepCounts, roomCreepConfig: RoomStrategyConfig,levelRoom:number){
   let spawnOne=false
   if(!spawn.spawning && roomCreeps[roomName]['harvester']<roomCreepConfig['peace'][levelRoom].harvester){
-    console.log('harvester',roomCreeps[roomName]['harvester'])
+    //console.log('harvester',roomCreeps[roomName]['harvester'])
       const name=`Harvester${roomName}${Game.time}`
       spawn.spawnCreep([WORK, CARRY, MOVE],name,{memory:{
         role: 'harvester',
@@ -44,10 +48,26 @@ function controlExistHarvester(spawn: StructureSpawn, creepsInRoom: Creep[], roo
     return spawnOne
 }
 
+function controlExistBuilder(spawn: StructureSpawn, creepsInRoom: Creep[], roomName: string, roomCreeps: RoomCreepCounts, roomCreepConfig: RoomStrategyConfig, levelRoom: number) {
+  let spawnOne=false
+  if(!spawn.spawning && roomCreeps[roomName]['builder']<roomCreepConfig['peace'][levelRoom].builder){
+     //console.log('Builder',roomCreeps[roomName]['builder'])
+      const name=`Builder${roomName}${Game.time}`
+      spawn.spawnCreep([WORK, CARRY, MOVE],name,{memory:{
+        role: 'builder',
+        room: roomName,
+        working: false,
+        livello:1
+        }
+      })
+      spawnOne= true
+    }
+    return spawnOne
+}
 function controlExistUpgrader(spawn: StructureSpawn, creepsInRoom: Creep[], roomName: string, roomCreeps: RoomCreepCounts, roomCreepConfig: RoomStrategyConfig, levelRoom: number) {
   let spawnOne=false
   if(!spawn.spawning && roomCreeps[roomName]['upgrader']<roomCreepConfig['peace'][levelRoom].upgrader){
-     console.log('harvester',roomCreeps[roomName]['upgrader'])
+     //console.log('harvester',roomCreeps[roomName]['upgrader'])
       const name=`Upgrader${roomName}${Game.time}`
       spawn.spawnCreep([WORK, CARRY, MOVE],name,{memory:{
         role: 'upgrader',
