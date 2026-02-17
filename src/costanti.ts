@@ -3,7 +3,7 @@ import { RoomStrategyConfig } from "main";
 // Oggetto di configurazione globale
 export const roomCreepConfig: RoomStrategyConfig = {
     peace: {
-        1: { harvester: 0, upgrader: 0, builder: 1,attacker: 0, defender: 0 },
+        1: { harvester: 2, upgrader: 1, builder: 1,attacker: 0, defender: 0 },
         2: { harvester: 2, upgrader: 1, builder: 1 ,attacker: 0, defender: 0 },
         3: { harvester: 3, upgrader: 2, builder: 2 ,attacker: 0, defender: 0 },
         4: { harvester: 4, upgrader: 2, builder: 2 ,attacker: 0, defender: 0 },

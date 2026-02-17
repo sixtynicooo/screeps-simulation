@@ -1,6 +1,7 @@
 import { RoomCreepCounts, RoomStrategyConfig } from "main";
 import { strategia1 } from "./strategy-1.ts/strategy1";
 import { salvoTileExit } from "tecniche-pianificazione-room.ts/algoritm-utility";
+import { cleanRoomCreeps } from "memoria/utilityMemory";
 
 /**
  * Solo la prima volta ha senso iterare poi salvo room
@@ -12,17 +13,16 @@ export function runRoomManager(roomCreeps: RoomCreepCounts, roomCreepConfig:Room
         Memory.rooms={}
     }
   for (const roomName in Game.rooms) {
-
+      // delete eventuali creep non presenti in memoria
+    cleanRoomCreeps(roomName)
 
     const room = Game.rooms[roomName];
-    // console.log(Game.rooms[roomName].controller,room?.controller?.my)
+
     if(!room.controller || !room.controller.my){
         continue
     }
 
-    console.log(roomName)
-
-    salvoTileExit(room)
+    //salvoTileExit(room)
 
     // inizializzo roomCreeps con nome room e i ruolo a partire da 0
     roomCreeps[roomName]={harvester: 0, upgrader: 0, builder: 0,attacker: 0, defender: 0 }
@@ -37,7 +37,7 @@ export function runRoomManager(roomCreeps: RoomCreepCounts, roomCreepConfig:Room
     // creo oggetto per i tipi presenti nella room
     getAllCreeepsRooms(room,roomName,roomCreeps)
 
-    //manageRoom(room,level,roomName,roomCreeps,roomCreepConfig);
+    manageRoom(room,level,roomName,roomCreeps,roomCreepConfig);
     break
     }
 }
