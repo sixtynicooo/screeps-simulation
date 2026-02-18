@@ -1,6 +1,6 @@
 import { RoomCreepCounts, RoomStrategyConfig } from "main";
 import { strategia1 } from "./strategy-1.ts/strategy1";
-import { salvoTileExit } from "tecniche-pianificazione-room.ts/algoritm-utility";
+import { getDistanceTransform, salvoTileExit } from "tecniche-pianificazione-room.ts/algoritm-utility";
 import { cleanRoomCreeps } from "memoria/utilityMemory";
 
 /**
@@ -22,7 +22,8 @@ export function runRoomManager(roomCreeps: RoomCreepCounts, roomCreepConfig:Room
         continue
     }
 
-    //salvoTileExit(room)
+    salvoTileExit(room)
+    getDistanceTransform(room)
 
     // inizializzo roomCreeps con nome room e i ruolo a partire da 0
     roomCreeps[roomName]={harvester: 0, upgrader: 0, builder: 0,attacker: 0, defender: 0 }
