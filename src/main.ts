@@ -1,5 +1,6 @@
 import { roomCreepConfig } from "costanti";
 import { runRoomManager } from "rooms/manager-rooms";
+import { Nullable } from "type";
 import { ErrorMapper } from "utils/ErrorMapper";
 
 declare global {
@@ -19,6 +20,7 @@ declare global {
 
   interface RoomMemory{
     spawnId:Id<StructureSpawn>
+    building:Nullable<RoomPosition>
   }
 
   type creepRole='harvester'|'upgrader'|'builder'|'attacker'|'defender'

@@ -1,6 +1,6 @@
 import { RoomCreepCounts, RoomStrategyConfig } from "main";
 import { strategia1 } from "./strategy-1.ts/strategy1";
-import { getDistanceTransform, salvoTileExit } from "tecniche-pianificazione-room.ts/algoritm-utility";
+import { choosePositionBuild, getDistanceTransform, salvoTileExit } from "tecniche-pianificazione-room.ts/algoritm-utility";
 import { cleanRoomCreeps } from "memoria/utilityMemory";
 
 /**
@@ -22,8 +22,31 @@ export function runRoomManager(roomCreeps: RoomCreepCounts, roomCreepConfig:Room
         continue
     }
 
-    salvoTileExit(room)
-    getDistanceTransform(room)
+    if(!Memory.rooms[roomName]?.building){
+        const tileEdgeExit:number[][]=salvoTileExit(room)
+        const costMatrix:CostMatrix= getDistanceTransform(room)
+        const posStartBuilding=choosePositionBuild(room,costMatrix,tileEdgeExit)
+        if(posStartBuilding){
+            Memory.rooms[roomName].building=posStartBuilding
+        }
+
+    }
+    const posView=Memory.rooms[roomName].building
+    if(posView){
+        const visual = new RoomVisual(room.name)
+        visual.text('start',posView.x,posView.y,{
+            color:'black',
+            backgroundColor:'white'
+
+        })
+        const tileEdgeExit:number[][]=salvoTileExit(room)
+        const costMatrix:CostMatrix= getDistanceTransform(room)
+        const posStartBuilding=choosePositionBuild(room,costMatrix,tileEdgeExit)
+    }
+
+
+
+
 
     // inizializzo roomCreeps con nome room e i ruolo a partire da 0
     roomCreeps[roomName]={harvester: 0, upgrader: 0, builder: 0,attacker: 0, defender: 0 }
@@ -31,7 +54,7 @@ export function runRoomManager(roomCreeps: RoomCreepCounts, roomCreepConfig:Room
     if( !Memory.rooms[roomName]){
         const spawns = room.find(FIND_MY_SPAWNS);
         if (spawns.length){
-            Memory.rooms[roomName]={ spawnId: spawns[0].id }
+            Memory.rooms[roomName]={ spawnId: spawns[0].id ,building:null}
         }
     }
     const level:number=room.controller.level

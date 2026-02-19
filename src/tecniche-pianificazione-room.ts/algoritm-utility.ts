@@ -1,15 +1,18 @@
 import { ROOM_SIZE } from "costanti";
+import { Position } from "source-map";
+import { Nullable } from "type";
 
 // capisco i tile exit , praticamente se nei bordi è 0 allora sicuramente è exit, questa è l'idea
 export function salvoTileExit(room: Room){
     const terrain = room.getTerrain();
     const visual = new RoomVisual(room.name)
+    let listTileExit:number[][]=[]
     for(let x=0;x<ROOM_SIZE;x++){
         for(let y=0;y<ROOM_SIZE;y++){
             if(x===0 || x===ROOM_SIZE-1 || y===0||y===ROOM_SIZE-1){
                 const typeTerreno=terrain.get(x,y)
                 if(terrain.get(x,y)===0){
-
+                    listTileExit.push([x,y])
                     visual.rect(x-0.5,y-0.5,1,1,{
                         fill:'red'
                     })
@@ -18,21 +21,21 @@ export function salvoTileExit(room: Room){
             }
         }
     }
+    return listTileExit
 }
 
 
-
-export function getDistanceTransform(room: Room){
+// cerco zone ampie e distanti da muri
+export function getDistanceTransform(room: Room):CostMatrix{
      let costs = new PathFinder.CostMatrix();
 
     const terrain = new Room.Terrain(room.name);
     const visual = new RoomVisual(room.name)
     const costWallEdge=0
-    const costFree=100
+    const costFree=255
 
     let max:number=0
     let maxDelta:number=5
-
 
     // gestisco costi, costEdge per muri e perimetro esterno
     // costFree tile vuoti dove creep possono spostarsi
@@ -91,13 +94,6 @@ export function getDistanceTransform(room: Room){
         }
     }
 
-    // cerco max
-    for(let x=0;x<ROOM_SIZE;x++){
-        for(let y=0;y<ROOM_SIZE;y++){
-           max=Math.max(max,costs.get(x,y))
-        }
-    }
-
     // coloro
     for(let x=0;x<ROOM_SIZE;x++){
         for(let y=0;y<ROOM_SIZE;y++){
@@ -107,5 +103,63 @@ export function getDistanceTransform(room: Room){
             })
         }
     }
+    return costs
 
+}
+
+
+// cerco candidato migliore in base al costo. Se avessi più candiddati semplicemente selgo quello più lontano dall'uscita
+export function choosePositionBuild(room: Room,costMatrix: CostMatrix,tileEdgeExit: number[][]){
+    const spawns = room.find(FIND_MY_SPAWNS);
+    let spawn:Nullable<RoomPosition>=null
+    if (spawns.length > 0) {
+        spawn= spawns[0].pos;
+    }else{
+        // Altrimenti cerco le celle con valore massimo nel costMatrix
+        let maxCost = 0;
+
+        // Cerco max
+        for (let x = 0; x < ROOM_SIZE; x++) {
+            for (let y = 0; y < ROOM_SIZE; y++) {
+                const cost = costMatrix.get(x, y);
+                if (cost > maxCost) {
+                    maxCost = cost;
+                }
+            }
+        }
+
+        // Secondo ciclo: raccolgo tutte le celle candidate con valore massimo
+        const candidates: RoomPosition[] = [];
+        for (let x = 0; x < ROOM_SIZE; x++) {
+            for (let y = 0; y < ROOM_SIZE; y++) {
+                if (costMatrix.get(x, y) === maxCost) {
+                    candidates.push(new RoomPosition(x, y, room.name));
+                }
+            }
+        }
+        if(candidates.length===1){
+            spawn=candidates[0]
+        }
+        // cerco quella più distante dalle entrate
+        let candPos:Nullable<RoomPosition>=null
+        let distCorrent=1000
+            for(let i=0;i<candidates.length ;i++){
+
+                tileEdgeExit.forEach((posExit:number[])=>{
+                    const dx=posExit[0]-candidates[i].x
+                    const dy=posExit[1]-candidates[i].y
+                    const dist= Math.sqrt(dx*dx + dy*dy);
+                    if(distCorrent>dist){
+                        candPos=candidates[i]
+                        distCorrent=dist
+                    }
+                })
+                const ditMin=Math.min()
+                if(!candPos){
+                    candPos=candidates[i]
+                }
+            }
+        spawn=candPos
+    }
+    return spawn;
 }
