@@ -19,7 +19,7 @@ declare global {
   }
 
   interface RoomMemory{
-    spawnId:Id<StructureSpawn>
+    spawnId:Id<StructureSpawn>[]
     building:Nullable<RoomPosition>
   }
 
@@ -64,11 +64,12 @@ export type RoomStrategyConfig ={
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
 export const loop = ErrorMapper.wrapLoop(() => {
+  const visibleMapInfo=true
 
 
   // console.log(`Current game tick is ${Game.time} livello 1 gcl ${Game.gcl.level}`);
 
   // Oggetto dove accumulare i dati
   const roomCreeps: RoomCreepCounts = {};
-  runRoomManager(roomCreeps,roomCreepConfig);
+  runRoomManager(roomCreeps,roomCreepConfig,visibleMapInfo);
 });

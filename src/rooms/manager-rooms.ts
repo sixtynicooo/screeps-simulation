@@ -7,41 +7,52 @@ import { cleanRoomCreeps } from "memoria/utilityMemory";
  * Solo la prima volta ha senso iterare poi salvo room
  * OTTIMIZZAZIONE salvare rooms mie al posto di fare ogni volta iterazione su tutto
 */
-export function runRoomManager(roomCreeps: RoomCreepCounts, roomCreepConfig:RoomStrategyConfig): void {
+export function runRoomManager(roomCreeps: RoomCreepCounts, roomCreepConfig: RoomStrategyConfig, visibleMapInfo: boolean): void {
 
     if(!Memory.rooms){
         Memory.rooms={}
     }
   for (const roomName in Game.rooms) {
       // delete eventuali creep non presenti in memoria
-    cleanRoomCreeps(roomName)
+    cleanRoomCreeps()
 
     const room = Game.rooms[roomName];
 
     if(!room.controller || !room.controller.my){
         continue
     }
+    if(!Memory.rooms[roomName]){
+        Memory.rooms[roomName]={building:null,spawnId:[]}
+    }
 
     if(!Memory.rooms[roomName]?.building){
-        const tileEdgeExit:number[][]=salvoTileExit(room)
-        const costMatrix:CostMatrix= getDistanceTransform(room)
+        const tileEdgeExit:number[][]=salvoTileExit(room,visibleMapInfo)
+        const costMatrix:CostMatrix= getDistanceTransform(room,visibleMapInfo)
         const posStartBuilding=choosePositionBuild(room,costMatrix,tileEdgeExit)
         if(posStartBuilding){
             Memory.rooms[roomName].building=posStartBuilding
         }
-
     }
+    // vedere o meno le info della mappa
     const posView=Memory.rooms[roomName].building
-    if(posView){
+    if(posView &&visibleMapInfo){
         const visual = new RoomVisual(room.name)
         visual.text('start',posView.x,posView.y,{
             color:'black',
             backgroundColor:'white'
 
         })
-        const tileEdgeExit:number[][]=salvoTileExit(room)
-        const costMatrix:CostMatrix= getDistanceTransform(room)
+        const tileEdgeExit:number[][]=salvoTileExit(room,visibleMapInfo)
+        const costMatrix:CostMatrix= getDistanceTransform(room,visibleMapInfo)
         const posStartBuilding=choosePositionBuild(room,costMatrix,tileEdgeExit)
+        const posx=posStartBuilding?.x
+        const posy=posStartBuilding?.y
+        if(posx && posy){
+            visual.rect(posx-0.5,posy-0.5,1,1,{
+            fill:'white'
+            })
+        }
+
     }
 
 
@@ -54,7 +65,7 @@ export function runRoomManager(roomCreeps: RoomCreepCounts, roomCreepConfig:Room
     if( !Memory.rooms[roomName]){
         const spawns = room.find(FIND_MY_SPAWNS);
         if (spawns.length){
-            Memory.rooms[roomName]={ spawnId: spawns[0].id ,building:null}
+            Memory.rooms[roomName]={ spawnId: [spawns[0].id] ,building:null}
         }
     }
     const level:number=room.controller.level

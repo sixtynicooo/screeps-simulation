@@ -3,7 +3,7 @@ import { Position } from "source-map";
 import { Nullable } from "type";
 
 // capisco i tile exit , praticamente se nei bordi è 0 allora sicuramente è exit, questa è l'idea
-export function salvoTileExit(room: Room){
+export function salvoTileExit(room: Room,visibleMapInfo:boolean){
     const terrain = room.getTerrain();
     const visual = new RoomVisual(room.name)
     let listTileExit:number[][]=[]
@@ -13,9 +13,12 @@ export function salvoTileExit(room: Room){
                 const typeTerreno=terrain.get(x,y)
                 if(terrain.get(x,y)===0){
                     listTileExit.push([x,y])
-                    visual.rect(x-0.5,y-0.5,1,1,{
+                    if(visibleMapInfo){
+                        visual.rect(x-0.5,y-0.5,1,1,{
                         fill:'red'
-                    })
+                        })
+                    }
+
 
                 }
             }
@@ -26,7 +29,7 @@ export function salvoTileExit(room: Room){
 
 
 // cerco zone ampie e distanti da muri
-export function getDistanceTransform(room: Room):CostMatrix{
+export function getDistanceTransform(room: Room,visibleMapInfo:boolean):CostMatrix{
      let costs = new PathFinder.CostMatrix();
 
     const terrain = new Room.Terrain(room.name);
@@ -43,20 +46,28 @@ export function getDistanceTransform(room: Room):CostMatrix{
         for(let y=0;y<ROOM_SIZE;y++){
                 if(x===0 || x===ROOM_SIZE-1 || y===0||y===ROOM_SIZE-1){
                     costs.set(x,y,costWallEdge)
-                    visual.rect(x-0.5,y-0.5,1,1,{
-                    fill:'yellow'
-                    })
+                    if(visibleMapInfo){
+                        visual.rect(x-0.5,y-0.5,1,1,{
+                        fill:'yellow'
+                        })
+                    }
+
                 }else if(terrain.get(x,y)===1){
                     costs.set(x,y,costWallEdge)
-                    visual.rect(x-0.5,y-0.5,1,1,{
-                    fill:'brown'
-                    })
+                    if(visibleMapInfo){
+                        visual.rect(x-0.5,y-0.5,1,1,{
+                        fill:'brown'
+                        })
+                    }
+
 
                 }else if(terrain.get(x,y)===0 ||terrain.get(x,y)===2){
                     costs.set(x,y,costFree)
-                    visual.rect(x-0.5,y-0.5,1,1,{
-                    fill:'white'
-                    })
+                    if(visibleMapInfo){
+                        visual.rect(x-0.5,y-0.5,1,1,{
+                        fill:'white'
+                        })
+                    }
 
                 }
             }
@@ -98,9 +109,11 @@ export function getDistanceTransform(room: Room):CostMatrix{
     for(let x=0;x<ROOM_SIZE;x++){
         for(let y=0;y<ROOM_SIZE;y++){
             const colorMax=costs.get(x,y)>=max-maxDelta?'orange':'black'
-            visual.text(String(costs.get(x,y)),x,y,{
-            color:colorMax
-            })
+             if(visibleMapInfo){
+                visual.text(String(costs.get(x,y)),x,y,{
+                color:colorMax
+                })
+            }
         }
     }
     return costs
@@ -113,7 +126,35 @@ export function choosePositionBuild(room: Room,costMatrix: CostMatrix,tileEdgeEx
     const spawns = room.find(FIND_MY_SPAWNS);
     let spawn:Nullable<RoomPosition>=null
     if (spawns.length > 0) {
-        spawn= spawns[0].pos;
+        const spawnTmp=spawns[0];
+        const cellSpawnCost=costMatrix.get(spawnTmp.pos.x,spawnTmp.pos.y)
+        let maxCostAdiacent:{posx:number,posy:number,cost: number}={
+            posx:spawnTmp.pos.x,
+            posy:spawnTmp.pos.y,
+            cost:costMatrix.get(spawnTmp.pos.x,spawnTmp.pos.y)
+        }
+        // controllo celle vicine con stesso costo o più
+        for(let posx=spawnTmp.pos.x-1;posx<spawnTmp.pos.x+1;posx++){
+            for(let posy=spawnTmp.pos.y-1;posy<spawnTmp.pos.y+1;posy++){
+                // prima metto casi in cui non voglio assolutamente tener conto
+                if(posx===spawnTmp.pos.x && posy===spawnTmp.pos.y){
+                    continue
+                }else if(costMatrix.get(posx,posy)===0){
+                    continue
+                }
+
+                // costMatrix.get(posx,posy)>0 così sono sicuro che sia edificabile
+                if(maxCostAdiacent.cost<=costMatrix.get(posx,posy)){
+                    maxCostAdiacent={
+                        cost:costMatrix.get(posx,posy),
+                        posx:posx,
+                        posy:posy,
+                    }
+                }
+            }
+        }
+        spawn=room.getPositionAt(maxCostAdiacent.posx,maxCostAdiacent.posy)
+
     }else{
         // Altrimenti cerco le celle con valore massimo nel costMatrix
         let maxCost = 0;
